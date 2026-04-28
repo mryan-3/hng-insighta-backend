@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:insightadb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# GitHub OAuth for Dev (To be filled with placeholder/env vars)
+github:
+  client-id: ${GITHUB_CLIENT_ID:placeholder_id}
+  client-secret: ${GITHUB_CLIENT_SECRET:placeholder_secret}
+  redirect-uri: http://localhost:8080/auth/github/callback
+
+# JWT Secrets for Dev
+jwt:
+  secret: ${JWT_SECRET:dev_secret_key_ensure_at_least_32_characters_long}
+  access-expiry: 180000 # 3 minutes in ms
+  refresh-expiry: 300000 # 5 minutes in ms

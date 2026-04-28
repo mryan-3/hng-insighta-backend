@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: insighta-labs-plus
+  profiles:
+    active: dev # Default profile
+  main:
+    banner-mode: "off"
+
+server:
+  port: 8080
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    com.hng.stage3: DEBUG
+    org.springframework.security: DEBUG
