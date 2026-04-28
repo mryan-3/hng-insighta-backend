@@ -51,11 +51,37 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<Object> refresh(@RequestBody Map<String, String> request) {
-        return ResponseEntity.ok(Map.of("status", "success", "message", "Refresh logic pending"));
+        try {
+            String refreshToken = request.get("refresh_token");
+            if (refreshToken == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(ErrorResponse.of("refresh_token is required"));
+            }
+            Map<String, String> tokens = authService.refreshToken(refreshToken);
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "data", tokens
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.of(e.getMessage()));
+        }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Object> logout() {
-        return ResponseEntity.ok(Map.of("status", "success", "message", "Logged out"));
+    public ResponseEntity<Object> logout(@RequestBody Map<String, String> request) {
+        try {
+            String refreshToken = request.get("refresh_token");
+            if (refreshToken != null) {
+                authService.logout(refreshToken);
+            }
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "message", "Logged out successfully"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.of(e.getMessage()));
+        }
     }
 }

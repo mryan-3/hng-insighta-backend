@@ -1,15 +1,20 @@
 package com.hng.stage3.services;
 
 import com.hng.stage3.config.GithubConfig;
+import com.hng.stage3.config.JwtConfig;
+import com.hng.stage3.entities.RefreshToken;
 import com.hng.stage3.entities.User;
+import com.hng.stage3.repositories.RefreshTokenRepository;
 import com.hng.stage3.repositories.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.Map;
@@ -19,18 +24,17 @@ import java.util.Map;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
     private final GithubConfig githubConfig;
+    private final JwtConfig jwtConfig;
 
+    @Transactional
     public Map<String, String> loginWithGithub(String code, String codeVerifier) {
-        // 1. Exchange code for GitHub Access Token
         String githubAccessToken = exchangeCodeForToken(code, codeVerifier);
-
-        // 2. Get User Info from GitHub
         GithubUser githubUser = fetchGithubUserInfo(githubAccessToken);
 
-        // 3. Create or Update local user
         User user = userRepository.findByGithubId(githubUser.getId())
                 .map(existingUser -> {
                     existingUser.setLastLoginAt(OffsetDateTime.now());
@@ -45,14 +49,39 @@ public class AuthService {
                             .username(githubUser.getLogin())
                             .email(githubUser.getEmail())
                             .avatarUrl(githubUser.getAvatarUrl())
-                            .role("analyst") // Default role
+                            .role("analyst")
                             .isActive(true)
                             .lastLoginAt(OffsetDateTime.now())
                             .build();
                     return userRepository.save(newUser);
                 });
 
-        // 4. Issue our own JWTs
+        return generateTokenPair(user);
+    }
+
+    @Transactional
+    public Map<String, String> refreshToken(String token) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
+            refreshTokenRepository.delete(refreshToken);
+            throw new RuntimeException("Refresh token expired");
+        }
+
+        User user = refreshToken.getUser();
+        // Rotation: Delete the old token immediately
+        refreshTokenRepository.delete(refreshToken);
+        
+        return generateTokenPair(user);
+    }
+
+    @Transactional
+    public void logout(String token) {
+        refreshTokenRepository.deleteByToken(token);
+    }
+
+    private Map<String, String> generateTokenPair(User user) {
         org.springframework.security.core.userdetails.User userDetails = new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 "",
@@ -61,15 +90,29 @@ public class AuthService {
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().toUpperCase()))
         );
 
+        String accessToken = jwtService.generateAccessToken(userDetails);
+        String refreshTokenString = jwtService.generateRefreshToken(userDetails);
+
+        // Store refresh token in DB
+        // We only allow one active refresh token per user for simplicity, 
+        // but can be adjusted for multi-session.
+        refreshTokenRepository.deleteByUser(user);
+        
+        RefreshToken refreshToken = RefreshToken.builder()
+                .user(user)
+                .token(refreshTokenString)
+                .expiryDate(Instant.now().plusMillis(jwtConfig.getRefreshExpiry()))
+                .build();
+        refreshTokenRepository.save(refreshToken);
+
         return Map.of(
-                "access_token", jwtService.generateAccessToken(userDetails),
-                "refresh_token", jwtService.generateRefreshToken(userDetails)
+                "access_token", accessToken,
+                "refresh_token", refreshTokenString
         );
     }
 
     private String exchangeCodeForToken(String code, String codeVerifier) {
         String url = "https://github.com/login/oauth/access_token";
-        
         Map<String, String> params = Map.of(
                 "client_id", githubConfig.getClientId(),
                 "client_secret", githubConfig.getClientSecret(),
