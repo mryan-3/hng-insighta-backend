@@ -25,6 +25,6 @@ github:
 
 # JWT Secrets for Dev
 jwt:
-  secret: ${JWT_SECRET:dev_secret_key_ensure_at_least_32_characters_long}
+  secret: ${JWT_SECRET:Y29uZmlndXJlX2Ffc2VjcmV0X2tleV90aGF0X2lzX2F0X2xlYXN0XzMyX2NoYXJhY3RlcnNfbG9uZw==}
   access-expiry: 180000 # 3 minutes in ms
   refresh-expiry: 300000 # 5 minutes in ms
