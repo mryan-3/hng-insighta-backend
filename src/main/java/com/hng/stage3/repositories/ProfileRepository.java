@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, UUID>, JpaSpecificationExecutor<Profile> {
     boolean existsByName(String name);
+    java.util.Optional<Profile> findByNameIgnoreCase(String name);
 }

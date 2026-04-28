@@ -3,13 +3,17 @@ package com.hng.stage3.services;
 import com.hng.stage3.utils.CountryCodeMapper;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor
 public class QueryParser {
+
+    private final CountryCodeMapper countryCodeMapper;
 
     @Data
     @Builder
@@ -72,7 +76,7 @@ public class QueryParser {
         matcher = countryPattern.matcher(query);
         if (matcher.find()) {
             String countryName = matcher.group(1).trim();
-            String code = CountryCodeMapper.getCode(countryName);
+            String code = countryCodeMapper.getCode(countryName);
             if (code != null) {
                 builder.countryId(code);
                 foundAnything = true;
