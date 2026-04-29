@@ -34,8 +34,8 @@ public class AuthService {
     private final JwtConfig jwtConfig;
 
     @Transactional
-    public Map<String, String> loginWithGithub(String code, String codeVerifier) {
-        String githubAccessToken = exchangeCodeForToken(code, codeVerifier);
+    public Map<String, String> loginWithGithub(String code, String codeVerifier, String redirectUri) {
+        String githubAccessToken = exchangeCodeForToken(code, codeVerifier, redirectUri);
         GithubUser githubUser = fetchGithubUserInfo(githubAccessToken);
 
         User user = userRepository.findByGithubId(githubUser.getId())
@@ -128,13 +128,15 @@ public class AuthService {
         );
     }
 
-    private String exchangeCodeForToken(String code, String codeVerifier) {
+    private String exchangeCodeForToken(String code, String codeVerifier, String redirectUri) {
         String url = "https://github.com/login/oauth/access_token";
+        String effectiveRedirectUri = (redirectUri != null) ? redirectUri : githubConfig.getRedirectUri();
+
         Map<String, String> params = Map.of(
                 "client_id", githubConfig.getClientId(),
                 "client_secret", githubConfig.getClientSecret(),
                 "code", code,
-                "redirect_uri", githubConfig.getRedirectUri(),
+                "redirect_uri", effectiveRedirectUri,
                 "code_verifier", codeVerifier != null ? codeVerifier : ""
         );
 

@@ -215,3 +215,11 @@ public class ProfileService {
             throw new RuntimeException("Failed to generate CSV", e);
         }
     }
+
+    private String classifyAgeGroup(int age) {
+        if (age <= 12) return "child";
+        if (age <= 19) return "teenager";
+        if (age <= 59) return "adult";
+        return "senior";
+    }
+}

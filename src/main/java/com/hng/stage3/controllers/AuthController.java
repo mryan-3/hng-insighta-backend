@@ -2,6 +2,7 @@ package com.hng.stage3.controllers;
 
 import com.hng.stage3.config.GithubConfig;
 import com.hng.stage3.dto.ErrorResponse;
+import com.hng.stage3.entities.User;
 import com.hng.stage3.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,10 +36,11 @@ public class AuthController {
     @GetMapping("/github/callback")
     public ResponseEntity<Object> githubCallback(
             @RequestParam String code,
-            @RequestParam(name = "code_verifier", required = false) String codeVerifier
+            @RequestParam(name = "code_verifier", required = false) String codeVerifier,
+            @RequestParam(name = "redirect_uri", required = false) String redirectUri
     ) {
         try {
-            Map<String, String> tokens = authService.loginWithGithub(code, codeVerifier);
+            Map<String, String> tokens = authService.loginWithGithub(code, codeVerifier, redirectUri);
             return ResponseEntity.ok(Map.of(
                     "status", "success",
                     "data", tokens
