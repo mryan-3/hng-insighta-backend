@@ -7,6 +7,8 @@ import com.hng.stage3.repositories.ProfileRepository;
 import com.hng.stage3.repositories.ProfileSpecification;
 import com.hng.stage3.utils.CountryCodeMapper;
 import com.hng.stage3.utils.UuidUtils;
+import com.opencsv.CSVWriter;
+import com.opencsv.CSVWriterBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
@@ -183,9 +187,9 @@ public class ProfileService {
 
         List<Profile> profiles = profileRepository.findAll(spec, sort);
 
-        try (java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-             java.io.OutputStreamWriter writer = new java.io.OutputStreamWriter(out);
-             com.opencsv.CSVWriter csvWriter = new com.opencsv.CSVWriter(writer)) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             OutputStreamWriter writer = new OutputStreamWriter(out);
+             CSVWriter csvWriter = (CSVWriter) new CSVWriterBuilder(writer).build()) {
 
             String[] header = {"id", "name", "gender", "gender_probability", "age", "age_group", "country_id", "country_name", "country_probability", "created_at"};
             csvWriter.writeNext(header);

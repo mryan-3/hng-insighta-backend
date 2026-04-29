@@ -6,7 +6,9 @@ import com.hng.stage3.entities.Profile;
 import com.hng.stage3.services.ProfileService;
 import com.hng.stage3.services.QueryParser;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -143,8 +145,8 @@ public class ProfileController {
 
         String filename = "profiles_" + System.currentTimeMillis() + ".csv";
         return ResponseEntity.ok()
-                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(org.springframework.http.MediaType.parseMediaType("text/csv"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.parseMediaType("text/csv"))
                 .body(csvData);
     }
 }

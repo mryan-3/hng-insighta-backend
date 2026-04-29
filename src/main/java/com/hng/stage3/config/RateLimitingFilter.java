@@ -2,6 +2,7 @@ package com.hng.stage3.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +52,7 @@ public class RateLimitingFilter implements Filter {
     }
 
     private Bucket createNewBucket(int capacity, int minutes) {
-        return Bucket.builder()
+        return Bucket4j.builder()
                 .addLimit(Bandwidth.classic(capacity, Refill.intervally(capacity, Duration.ofMinutes(minutes))))
                 .build();
     }

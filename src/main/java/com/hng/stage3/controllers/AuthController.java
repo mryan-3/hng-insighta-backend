@@ -84,4 +84,18 @@ public class AuthController {
                     .body(ErrorResponse.of(e.getMessage()));
         }
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<Object> getCurrentUser() {
+        try {
+            User user = authService.getCurrentAuthenticatedUser();
+            return ResponseEntity.ok(Map.of(
+                    "status", "success",
+                    "data", user
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ErrorResponse.of(e.getMessage()));
+        }
+    }
 }
