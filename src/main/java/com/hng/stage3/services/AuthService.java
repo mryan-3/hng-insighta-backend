@@ -6,6 +6,7 @@ import com.hng.stage3.entities.RefreshToken;
 import com.hng.stage3.entities.User;
 import com.hng.stage3.repositories.RefreshTokenRepository;
 import com.hng.stage3.repositories.UserRepository;
+import com.hng.stage3.utils.UuidUtils;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -45,6 +46,7 @@ public class AuthService {
                 })
                 .orElseGet(() -> {
                     User newUser = User.builder()
+                            .id(UuidUtils.generateV7())
                             .githubId(githubUser.getId())
                             .username(githubUser.getLogin())
                             .email(githubUser.getEmail())

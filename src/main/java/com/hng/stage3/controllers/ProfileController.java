@@ -110,4 +110,41 @@ public class ProfileController {
                     .body(ErrorResponse.of(e.getMessage()));
         }
     }
+
+    @GetMapping("/export")
+    public ResponseEntity<Object> exportProfiles(
+            @RequestHeader(value = "X-API-Version", required = false) String apiVersion,
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) String age_group,
+            @RequestParam(required = false) String country_id,
+            @RequestParam(required = false) Integer min_age,
+            @RequestParam(required = false) Integer max_age,
+            @RequestParam(required = false) Double min_gender_probability,
+            @RequestParam(required = false) Double min_country_probability,
+            @RequestParam(defaultValue = "created_at") String sort_by,
+            @RequestParam(defaultValue = "asc") String order
+    ) {
+        if (!"1".equals(apiVersion)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.of("API version header required"));
+        }
+
+        if (!"csv".equalsIgnoreCase(format)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorResponse.of("Only CSV format is supported for export"));
+        }
+
+        byte[] csvData = profileService.exportProfilesToCsv(
+                gender, age_group, country_id, min_age, max_age,
+                min_gender_probability, min_country_probability,
+                sort_by, order
+        );
+
+        String filename = "profiles_" + System.currentTimeMillis() + ".csv";
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(org.springframework.http.MediaType.parseMediaType("text/csv"))
+                .body(csvData);
+    }
 }
