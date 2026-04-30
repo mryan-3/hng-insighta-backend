@@ -24,7 +24,6 @@ public class ProfileController {
 
     @GetMapping
     public ResponseEntity<Object> getProfiles(
-            @RequestHeader(value = "X-API-Version", required = false) String apiVersion,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) String age_group,
             @RequestParam(required = false) String country_id,
@@ -37,11 +36,6 @@ public class ProfileController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit
     ) {
-        if (!"1".equals(apiVersion)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ErrorResponse.of("API version header required"));
-        }
-
         try {
             PagedResponse<Profile> response = profileService.getProfiles(
                     gender, age_group, country_id, min_age, max_age,
@@ -57,16 +51,10 @@ public class ProfileController {
 
     @GetMapping("/search")
     public ResponseEntity<Object> searchProfiles(
-            @RequestHeader(value = "X-API-Version", required = false) String apiVersion,
             @RequestParam String q,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer limit
     ) {
-        if (!"1".equals(apiVersion)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ErrorResponse.of("API version header required"));
-        }
-
         QueryParser.FilterCriteria criteria = queryParser.parse(q);
         
         if (!criteria.isInterpreted()) {
@@ -86,14 +74,8 @@ public class ProfileController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Object> createProfile(
-            @RequestHeader(value = "X-API-Version", required = false) String apiVersion,
             @RequestBody Map<String, String> request
     ) {
-        if (!"1".equals(apiVersion)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ErrorResponse.of("API version header required"));
-        }
-
         String name = request.get("name");
         if (name == null || name.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -115,7 +97,6 @@ public class ProfileController {
 
     @GetMapping("/export")
     public ResponseEntity<Object> exportProfiles(
-            @RequestHeader(value = "X-API-Version", required = false) String apiVersion,
             @RequestParam(defaultValue = "csv") String format,
             @RequestParam(required = false) String gender,
             @RequestParam(required = false) String age_group,
@@ -127,11 +108,6 @@ public class ProfileController {
             @RequestParam(defaultValue = "created_at") String sort_by,
             @RequestParam(defaultValue = "asc") String order
     ) {
-        if (!"1".equals(apiVersion)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ErrorResponse.of("API version header required"));
-        }
-
         if (!"csv".equalsIgnoreCase(format)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ErrorResponse.of("Only CSV format is supported for export"));
