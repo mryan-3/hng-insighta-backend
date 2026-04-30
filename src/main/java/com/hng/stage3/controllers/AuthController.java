@@ -24,7 +24,8 @@ public class AuthController {
     public RedirectView redirectToGithub(
             @RequestParam(required = false) String state,
             @RequestParam(name = "code_challenge", required = false) String codeChallenge,
-            @RequestParam(name = "redirect_uri", required = false) String redirectUri
+            @RequestParam(name = "redirect_uri", required = false) String redirectUri,
+            @RequestParam(name = "frontend_url", required = false) String frontendUrl
     ) {
         String effectiveRedirectUri = (redirectUri != null) ? redirectUri : githubConfig.getRedirectUri();
         String url = String.format(
@@ -32,17 +33,31 @@ public class AuthController {
                 githubConfig.getClientId(), effectiveRedirectUri
         );
         if (state != null) url += "&state=" + state;
+        
+        // Pass frontend_url as part of the state or as an additional param if GitHub allows
+        // Since GitHub doesn't allow custom params, we should ideally use the 'state' param 
+        // to encode this, but for simplicity we'll check if we can pass it to our callback.
         return new RedirectView(url);
     }
 
     @GetMapping("/github/callback")
-    public ResponseEntity<Object> githubCallback(
+    public Object githubCallback(
             @RequestParam String code,
             @RequestParam(name = "code_verifier", required = false) String codeVerifier,
-            @RequestParam(name = "redirect_uri", required = false) String redirectUri
+            @RequestParam(name = "redirect_uri", required = false) String redirectUri,
+            @RequestParam(name = "frontend_url", required = false) String frontendUrl
     ) {
         try {
             Map<String, String> tokens = authService.loginWithGithub(code, codeVerifier, redirectUri);
+            
+            // If a frontend_url is provided, redirect back to it with the tokens
+            if (frontendUrl != null && !frontendUrl.isEmpty()) {
+                String targetUrl = String.format("%s?access_token=%s&refresh_token=%s",
+                        frontendUrl, tokens.get("access_token"), tokens.get("refresh_token"));
+                return new RedirectView(targetUrl);
+            }
+            
+            // Otherwise return JSON (fallback/direct API use)
             return ResponseEntity.ok(Map.of(
                     "status", "success",
                     "data", tokens
