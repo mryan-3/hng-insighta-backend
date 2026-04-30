@@ -103,33 +103,47 @@ public class ProfileService {
 
         Page<Profile> profilePage = profileRepository.findAll(spec, pageable);
 
+        Map<String, String> queryParams = new LinkedHashMap<>();
+        if (gender != null) queryParams.put("gender", gender);
+        if (ageGroup != null) queryParams.put("age_group", ageGroup);
+        if (countryId != null) queryParams.put("country_id", countryId);
+        if (minAge != null) queryParams.put("min_age", String.valueOf(minAge));
+        if (maxAge != null) queryParams.put("max_age", String.valueOf(maxAge));
+        if (minGenderProb != null) queryParams.put("min_gender_probability", String.valueOf(minGenderProb));
+        if (minCountryProb != null) queryParams.put("min_country_probability", String.valueOf(minCountryProb));
+        if (sortBy != null) queryParams.put("sort_by", sortBy);
+        if (order != null) queryParams.put("order", order);
+        queryParams.put("limit", String.valueOf(validatedLimit));
+
         return PagedResponse.success(
                 profilePage.getContent(),
                 validatedPage,
                 validatedLimit,
                 profilePage.getTotalElements(),
                 profilePage.getTotalPages(),
-                generateLinks(baseUri, validatedPage, validatedLimit, profilePage.getTotalPages())
+                generateLinks(baseUri, validatedPage, totalPagesToUse(profilePage), queryParams)
         );
     }
 
-    private Map<String, String> generateLinks(String baseUri, int page, int limit, int totalPages) {
+    private int totalPagesToUse(Page<?> page) {
+        return page.getTotalPages();
+    }
+
+    private Map<String, String> generateLinks(String baseUri, int page, int totalPages, Map<String, String> queryParams) {
         Map<String, String> links = new HashMap<>();
-        links.put("self", String.format("%s?page=%d&limit=%d", baseUri, page, limit));
-        
-        if (page < totalPages) {
-            links.put("next", String.format("%s?page=%d&limit=%d", baseUri, page + 1, limit));
-        } else {
-            links.put("next", null);
-        }
-        
-        if (page > 1) {
-            links.put("prev", String.format("%s?page=%d&limit=%d", baseUri, page - 1, limit));
-        } else {
-            links.put("prev", null);
-        }
-        
+        links.put("self", buildLink(baseUri, page, queryParams));
+        links.put("next", page < totalPages ? buildLink(baseUri, page + 1, queryParams) : null);
+        links.put("prev", page > 1 ? buildLink(baseUri, page - 1, queryParams) : null);
         return links;
+    }
+
+    private String buildLink(String baseUri, int page, Map<String, String> queryParams) {
+        StringBuilder sb = new StringBuilder(baseUri);
+        sb.append("?page=").append(page);
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            sb.append("&").append(entry.getKey()).append("=").append(entry.getValue());
+        }
+        return sb.toString();
     }
 
     private GenderizeResponse fetchGender(String name) {
