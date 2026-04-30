@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("Forbidden. You do not have the required permissions."));
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of("Resource not found: " + ex.getResourcePath()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
         log.error("Unhandled exception: ", ex);
