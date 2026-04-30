@@ -24,7 +24,7 @@ services:
       GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI}
       JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "80:8080"
+      - "8080:8080"
 
 volumes:
   pgdata:
