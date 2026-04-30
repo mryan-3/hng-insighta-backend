@@ -2,7 +2,7 @@ spring:
   application:
     name: insighta-labs-plus
   profiles:
-    active: dev # Default profile
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     banner-mode: "off"
 
