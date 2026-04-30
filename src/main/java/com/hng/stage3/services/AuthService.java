@@ -110,16 +110,13 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshTokenString = jwtService.generateRefreshToken(userDetails);
 
-        // Store refresh token in DB
-        // We only allow one active refresh token per user for simplicity, 
-        // but can be adjusted for multi-session.
-        refreshTokenRepository.deleteByUser(user);
+        // Update existing refresh token or create new one to avoid unique constraint violation
+        RefreshToken refreshToken = refreshTokenRepository.findByUser(user)
+                .orElse(RefreshToken.builder().user(user).build());
         
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .token(refreshTokenString)
-                .expiryDate(Instant.now().plusMillis(jwtConfig.getRefreshExpiry()))
-                .build();
+        refreshToken.setToken(refreshTokenString);
+        refreshToken.setExpiryDate(Instant.now().plusMillis(jwtConfig.getRefreshExpiry()));
+        
         refreshTokenRepository.save(refreshToken);
 
         return Map.of(

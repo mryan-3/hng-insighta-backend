@@ -19,8 +19,8 @@ spring:
 
 # GitHub OAuth for Dev (To be filled with placeholder/env vars)
 github:
-  client-id: ${GITHUB_CLIENT_ID:placeholder_id}
-  client-secret: ${GITHUB_CLIENT_SECRET:placeholder_secret}
+  client-id: ${GITHUB_CLIENT_ID:Ov23li9UHHkPDBEWlaRp}
+  client-secret: ${GITHUB_CLIENT_SECRET:7c01997c0709b159d4ff7d3fcb58dae6072cd50b}
   redirect-uri: http://localhost:8080/auth/github/callback
 
 # JWT Secrets for Dev
