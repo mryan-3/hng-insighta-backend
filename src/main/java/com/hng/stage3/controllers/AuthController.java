@@ -23,11 +23,13 @@ public class AuthController {
     @GetMapping("/github")
     public RedirectView redirectToGithub(
             @RequestParam(required = false) String state,
-            @RequestParam(name = "code_challenge", required = false) String codeChallenge
+            @RequestParam(name = "code_challenge", required = false) String codeChallenge,
+            @RequestParam(name = "redirect_uri", required = false) String redirectUri
     ) {
+        String effectiveRedirectUri = (redirectUri != null) ? redirectUri : githubConfig.getRedirectUri();
         String url = String.format(
-                "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=user:email",
-                githubConfig.getClientId(), githubConfig.getRedirectUri()
+                "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&scope=read:user user:email",
+                githubConfig.getClientId(), effectiveRedirectUri
         );
         if (state != null) url += "&state=" + state;
         return new RedirectView(url);
